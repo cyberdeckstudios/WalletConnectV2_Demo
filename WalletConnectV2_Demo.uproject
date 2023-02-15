@@ -1,0 +1,22 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "{F8496ECA-4784-7E14-1C30-8EADB33DB5A1}",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "WalletConnectV2_Demo",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "ModelingToolsEditorMode",
+			"Enabled": true,
+			"TargetAllowList": [
+				"Editor"
+			]
+		}
+	]
+}
