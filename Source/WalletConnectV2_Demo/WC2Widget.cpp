@@ -4,7 +4,7 @@
 #include "WC2Widget.h"
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
-#include "WalletConnectV2_DemoCharacter.h"
+#include "WC2HUD.h"
 
 void UWC2Widget::NativeConstruct()
 {
@@ -16,7 +16,6 @@ void UWC2Widget::NativeConstruct()
 
 void UWC2Widget::CLK()
 {
-	ConnectButton->SetVisibility(ESlateVisibility::Collapsed);
-	CC = CC == nullptr ? Cast<AWalletConnectV2_DemoCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0)) : CC;
-	CC->SoitBeg();
+	WC2HUD = WC2HUD == nullptr ? Cast<AWC2HUD>(GetWorld()->GetFirstPlayerController()->GetHUD()) : WC2HUD;
+	WC2HUD->ConnectClicked();
 }

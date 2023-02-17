@@ -8,10 +8,9 @@ public class WalletConnectV2_Demo : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay", "EnhancedInput", "OpenSSL", "JSON", "JsonUtilities", "WebSockets", "Http" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "WalletConnect" });
 
-        PrivateDependencyModuleNames.AddRange(new string[] { "OpenSSL" });
+        PrivateDependencyModuleNames.AddRange(new string[] { });
 
-        AddEngineThirdPartyPrivateStaticDependencies(Target, "OpenSSL");
     }
 }

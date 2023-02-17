@@ -47,5 +47,6 @@ public:
 	UFUNCTION()
 		void CLK();
 
-	class AWalletConnectV2_DemoCharacter* CC;
+	class AWC2HUD *WC2HUD;
+
 };
