@@ -48,7 +48,8 @@ public class WalletConnect : ModuleRules
                 "Json",
 				"JsonUtilities",
 				"WebSockets",
-				"HTTP"
+				"HTTP",
+                "UMG"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -61,7 +62,8 @@ public class WalletConnect : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
-                "OpenSSL"
+                "OpenSSL",
+                "UMG"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

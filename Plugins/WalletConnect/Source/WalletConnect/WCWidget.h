@@ -21,35 +21,74 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/HUD.h"
-#include "WC2HUD.generated.h"
+#include "Blueprint/UserWidget.h"
+#include "WCWidget.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class WALLETCONNECTV2_DEMO_API AWC2HUD : public AHUD
+class WALLETCONNECT_API UWCWidget : public UUserWidget
 {
 	GENERATED_BODY()
 public:
-	virtual void DrawHUD() override;
 
-	UPROPERTY(EditAnywhere, Category = "Player Stats")
-	TSubclassOf<class UUserWidget> WC2WidgetClass;
+	UPROPERTY(meta = (BindWidget))
+		class UCanvasPanel* QrPanel;
 
-	class UWC2Widget* WC2Widget;
+	UPROPERTY(meta = (BindWidget))
+		class UCanvasPanel* StatsPanel;
 
-	class UDataProcessHelper* DataProcessHelper;
+	UPROPERTY(meta = (BindWidget))
+		class UImage* QrImage;
 
-	void ConnectClicked();
-	void ConnectionDone();
+	UPROPERTY(meta = (BindWidget))
+		class UButton* Black;
 
-protected:
-	virtual void BeginPlay() override;
-	void AddWC2Widget();
+	UPROPERTY(meta = (BindWidget))
+		class UButton* ConnectButton;
 
-	FString address = "";
-	FString username = "";
-	FString egold = "";
-	FString cyber = "";
+	UPROPERTY(meta = (BindWidget))
+		class UButton* SendCyber;
+
+	UPROPERTY(meta = (BindWidget))
+		class UButton* SendTransaction;
+
+	UPROPERTY(meta = (BindWidget))
+		class UButton* SendTransactions;
+
+	UPROPERTY(meta = (BindWidget))
+		class UButton* SignMessage;
+
+	UPROPERTY(meta = (BindWidget))
+		class UButton* DisconnectButton;
+
+	UPROPERTY(meta = (BindWidget))
+		class UTextBlock* Address;
+
+	UPROPERTY(meta = (BindWidget))
+		class UTextBlock* Username;
+
+	UPROPERTY(meta = (BindWidget))
+		class UTextBlock* CYBER;
+
+	UPROPERTY(meta = (BindWidget))
+		class UTextBlock* EGLD;
+
+	virtual void NativeConstruct() override;
+
+	UFUNCTION()
+		void CLK();
+	UFUNCTION()
+		void CLK2();
+	UFUNCTION()
+		void CLK3();
+	UFUNCTION()
+		void CLK4();
+	UFUNCTION()
+		void CLK5();
+	UFUNCTION()
+		void CLK6();
+
+	class AWCHUD* WCHUD;
 };

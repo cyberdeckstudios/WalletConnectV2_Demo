@@ -24,6 +24,7 @@
 #include "UObject/NoExportTypes.h"
 #include "IWebSocket.h"
 #include "DataProcessHelper.h"
+#include "Templates/SharedPointer.h"
 #include "WebRequests.generated.h"
 
 /**
@@ -40,5 +41,6 @@ public:
 	void CloseSocket();
 private:
 	TSharedPtr<IWebSocket> Socket;
+
 	UDataProcessHelper *DataProcessHelper;
 };

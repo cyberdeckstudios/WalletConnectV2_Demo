@@ -39,9 +39,10 @@ private:
 	JsonRPC JsonRPC;
 	Cryptography Cryptography;
 	class UWebRequests* WebRequests;
-	class AWC2HUD* WC2HUD;
+	class AWCHUD* WCHUD;
 public:
 	UDataProcessHelper();
+	void Initialize(AWCHUD* WCHUDRef);
 	void InitilazeConnection();
 	UTexture2D* CreateQrCode();
 
@@ -49,13 +50,13 @@ public:
 	void wse(FString Error);
 	void wsr(FString Message);
 	void wss(FString MessageString);
-	void wsc(FString Reason);
+	void wsc(int32 StatusCode);
 
 	void Check(TSharedPtr<FJsonObject> JsonObject);
 	void DecryptMessage(FString message);
-	FString ReturnAccount();
+	void printVars();
 
-protected:
+	UPROPERTY(SaveGame)
 	FString Url;
 	FString WcStr;
 	FString Symkey;
@@ -65,4 +66,6 @@ protected:
 	FString XPublic;
 	FString PeerPublic;
 	FString Account;
+	bool Connected = false;
+	bool QrOpen = false;
 };

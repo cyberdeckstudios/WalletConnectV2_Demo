@@ -21,9 +21,17 @@
 
 #include "DataProcessHelper.h"
 #include "WebRequests.h"
+#include "WCHUD.h"
+
 
 UDataProcessHelper::UDataProcessHelper()
 {
+	Url="";
+}
+
+void UDataProcessHelper::Initialize(AWCHUD* WCHUDRef)
+{
+	WCHUD = WCHUDRef;
 	WebRequests = NewObject<UWebRequests>(this, TEXT("WebRequests"), RF_Transient);
 	WebRequests->Initialize(this);
 }
@@ -34,18 +42,34 @@ void UDataProcessHelper::InitilazeConnection()
 	{
 		Url = Constructor.GenerateUrl();
 	}
+	Url = "wss://" + Url;
 	WebRequests->websocket(Url);
+	WCHUD->ConnectionDone(Url);
 }
 
 UTexture2D* UDataProcessHelper::CreateQrCode()
 {
+	WcStr = "";
+	Symkey = "";
+	Topic = "";
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "a");
 	WcStr = Constructor.GenerateWCString(Symkey, Topic);
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "b");
 	WebRequests->SendMessage(JsonRPC.irn_subscribe(Topic));
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "c");
 	return Constructor.GenerateQrCode(WcStr);
 }
 
 void UDataProcessHelper::wsc()
 {
+	if (Connected == true)
+	{
+		WebRequests->SendMessage(JsonRPC.irn_subscribe(Topic));
+	}
+	else if (QrOpen ==true)
+	{
+		WCHUD->Refresh();
+	}
 }
 
 void UDataProcessHelper::wse(FString Error)
@@ -64,15 +88,19 @@ void UDataProcessHelper::wss(FString MessageString)
 {
 }
 
-void UDataProcessHelper::wsc(FString Reason)
+void UDataProcessHelper::wsc(int32 StatusCode)
 {
+	if (StatusCode == 4010)
+	{
+		InitilazeConnection();
+	}
 }
 
 void UDataProcessHelper::Check(TSharedPtr<FJsonObject> JsonObject)
 {
 	if (JsonObject->HasTypedField<EJson::String>("result"))
 	{
-		if (Subid.IsEmpty())
+		if (Connected == false)
 		{
 			Subid = JsonObject->GetStringField("result");
 			Cryptography.GenerateX25519(XPublic, XPrivate);
@@ -145,7 +173,14 @@ void UDataProcessHelper::DecryptMessage(FString message)
 	}
 }
 
-FString UDataProcessHelper::ReturnAccount()
+void UDataProcessHelper::printVars()
 {
-	return Account;
+	UE_LOG(LogTemp, Warning, TEXT("Url:"), *Url);
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "Url:" + Url);
+	UE_LOG(LogTemp, Warning, TEXT("WcStr:"), *WcStr);
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "WcStr:" + WcStr);
+	UE_LOG(LogTemp, Warning, TEXT("Symkey:"), *Symkey);
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "Symkey:" + Symkey);
+	UE_LOG(LogTemp, Warning, TEXT("Topic:"), *Topic);
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "Topic:" + Topic);
 }

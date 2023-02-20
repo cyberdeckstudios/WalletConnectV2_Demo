@@ -41,6 +41,7 @@ public:
 	FString Acknowledge(int64 id);
 	FString irn_publish_1103(FString Topic, FString SharedKey);
 	FString irn_publish_1108(int64 id, FString Topic, FString EncMsg);
-	TSharedRef<FJsonObject> TxObject(int Nonce, FString Receiver, FString Sender);
-	FString wc_sessionRequest(int Nonce, FString Receiver, FString Sender);
+	TSharedRef<FJsonObject> TxObject(int Nonce, FString Value, FString Receiver, FString Sender, FString data);
+	TArray<TSharedPtr<FJsonValue>> TXArray(TSharedRef<FJsonObject>transactionsObject);
+	FString wc_sessionRequest(TArray<TSharedPtr<FJsonValue>> transactionsarray);
 };

@@ -21,50 +21,43 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Blueprint/UserWidget.h"
-#include "WC2Widget.generated.h"
+#include "GameFramework/HUD.h"
+#include "Http.h"
+#include "WCHUD.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class WALLETCONNECTV2_DEMO_API UWC2Widget : public UUserWidget
+class WALLETCONNECT_API AWCHUD : public AHUD
 {
 	GENERATED_BODY()
 public:
+	virtual void DrawHUD() override;
 
-	UPROPERTY(meta = (BindWidget))
-		class UCanvasPanel* QrPanel;
+	UPROPERTY(EditAnywhere, Category = "Player Stats")
+	TSubclassOf<class UUserWidget> WCWidgetClass;
 
-	UPROPERTY(meta = (BindWidget))
-		class UCanvasPanel* StatsPanel;
+	class UWCWidget* WCWidget;
 
-	UPROPERTY(meta = (BindWidget))
-		class UImage* QrImage;
+	class AWCController* WCController;
 
-	UPROPERTY(meta = (BindWidget))
-		class UImage* Black;
+	void ConnectClicked();
+	void ConnectionDone(FString A);
+	void BlackClicked();
+	void Refresh();
+	void OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+	void OnResponseReceived2(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+	void OnResponseReceived3(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
+	void getNonce(FString tx);
 
-	UPROPERTY(meta = (BindWidget))
-		class UButton* ConnectButton;
-
-	UPROPERTY(meta = (BindWidget))
-		class UTextBlock* Address;
-
-	UPROPERTY(meta = (BindWidget))
-		class UTextBlock* Username;
-
-	UPROPERTY(meta = (BindWidget))
-		class UTextBlock* CYBER;
-
-	UPROPERTY(meta = (BindWidget))
-		class UTextBlock* EGLD;
-
-	virtual void NativeConstruct() override;
-
-	UFUNCTION()
-		void CLK();
-
-	class AWC2HUD *WC2HUD;
-
+protected:
+	virtual void BeginPlay() override;
+	void AddWCWidget();
+	FString Url = "";
+	FString address = "";
+	FString username = "";
+	FString egold = "";
+	FString cyber = "";
+	FString Txtype = "";
 };

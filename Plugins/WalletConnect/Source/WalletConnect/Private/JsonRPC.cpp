@@ -256,23 +256,30 @@ FString JsonRPC::irn_publish_1108(int64 id, FString Topic, FString EncMsg)
 	return OutputString;
 }
 
-TSharedRef<FJsonObject> JsonRPC::TxObject(int Nonce, FString Receiver, FString Sender)
+TSharedRef<FJsonObject> JsonRPC::TxObject(int Nonce, FString Value, FString Receiver, FString Sender,FString data)
 {
 	TSharedRef<FJsonObject> transactionsObject = MakeShared<FJsonObject>();
 	transactionsObject->SetNumberField("nonce", Nonce);
-	transactionsObject->SetStringField("value", "0");
+	transactionsObject->SetStringField("value", Value);
 	transactionsObject->SetStringField("receiver", Receiver);
 	transactionsObject->SetStringField("sender", Sender);
 	transactionsObject->SetNumberField("gasPrice", 1000000000);
 	transactionsObject->SetNumberField("gasLimit", 500000);
-	transactionsObject->SetStringField("data", "RVNEVFRyYW5zZmVyQDQzNTk0MjQ1NTIyZDM0MzgzOTYzMzE2M0AwZGUwYjZiM2E3NjQwMDAwQDc0NjU3Mzc0");
+	transactionsObject->SetStringField("data", data);
 	transactionsObject->SetStringField("chainID", "1");
 	transactionsObject->SetNumberField("version", 1);
 
 	return transactionsObject;
 }
 
-FString JsonRPC::wc_sessionRequest(int Nonce, FString Receiver, FString Sender)
+TArray<TSharedPtr<FJsonValue>> JsonRPC::TXArray(TSharedRef<FJsonObject> transactionsObject)
+{
+	TArray<TSharedPtr<FJsonValue>> transactionsarray;
+	transactionsarray.Add(MakeShared<FJsonValueObject>(transactionsObject));
+	return transactionsarray;
+}
+
+FString JsonRPC::wc_sessionRequest(TArray<TSharedPtr<FJsonValue>> transactionsarray)
 {
 	int64 id = (FDateTime::UtcNow().GetTicks() - FDateTime(1970, 1, 1).GetTicks()) / 10;
 	TSharedRef<FJsonObject> jsonObject = MakeShared<FJsonObject>();
@@ -286,10 +293,6 @@ FString JsonRPC::wc_sessionRequest(int Nonce, FString Receiver, FString Sender)
 	requestObject->SetStringField("method", "erd_signTransactions");
 
 	TSharedRef<FJsonObject> paramsObject2 = MakeShared<FJsonObject>();
-
-	TArray<TSharedPtr<FJsonValue>> transactionsarray;
-
-	transactionsarray.Add(MakeShared<FJsonValueObject>(TxObject(Nonce, Receiver, Sender)));
 
 	paramsObject2->SetArrayField("transactions", transactionsarray);
 

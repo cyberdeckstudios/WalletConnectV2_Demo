@@ -25,6 +25,12 @@
 THIRD_PARTY_INCLUDES_START
 #include "openssl/rand.h"
 #include "openssl/kdf.h"
+#include "openssl/sha.h"
+#include "openssl/md5.h"
+#include "openssl/rsa.h"
+#include "openssl/pem.h"
+#include "openssl/err.h"
+#include "openssl/aes.h"
 THIRD_PARTY_INCLUDES_END
 #undef UI
 
@@ -279,7 +285,7 @@ bool Cryptography::Exchangekeys(FString My_PrivateKey, FString Peer_PublicKey, F
 
 	unsigned char* shared_key = new unsigned char[shared_key_len];
 
-	if (!EVP_PKEY_derive(pctx, NULL, &shared_key_len))
+	if (!EVP_PKEY_derive(pctx, shared_key, &shared_key_len))
 	{
 		EVP_PKEY_CTX_free(pctx);
 		delete[] shared_key;
