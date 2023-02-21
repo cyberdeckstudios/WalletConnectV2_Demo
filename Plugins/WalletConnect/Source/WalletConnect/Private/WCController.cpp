@@ -29,14 +29,6 @@ void AWCController::BeginPlay()
 	WCPlayerState = GetPlayerState<AWCPlayerState>();
 }
 
-void AWCController::BeginDestroy()
-{
-	Super::BeginDestroy();
-	WCPlayerState->SendMessage(JsonRPC.irn_publish_1112(Topic, Symkey));
-	WCPlayerState->SendMessage(JsonRPC.irn_unsubscribe(Topic, Symkey));
-	WCPlayerState->CloseSocket();
-}
-
 void AWCController::InitilazeConnection()
 {
 	if (Url.IsEmpty())

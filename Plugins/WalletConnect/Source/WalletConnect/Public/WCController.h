@@ -37,7 +37,6 @@ class WALLETCONNECT_API AWCController : public APlayerController
 	GENERATED_BODY()
 public:
 	virtual void BeginPlay() override;
-	virtual void BeginDestroy() override;
 	void InitilazeConnection();
 	UTexture2D* CreateQrCode();
 
