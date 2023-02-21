@@ -194,7 +194,7 @@ void AWCController::DecryptMessage(FString message)
 			FJsonSerializer::Serialize(TXArr, Writr);
 
 			FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
-			Request->SetURL("https://api.multiversx.com/transactions");
+			Request->SetURL("https://devnet-api.multiversx.com/transactions");
 			Request->SetHeader("content-type", "application/json");
 			Request->SetVerb("POST");
 			Request->SetContentAsString(txstr);

@@ -49,7 +49,7 @@ protected:
 	FString XPublic;
 	FString PeerPublic;
 	FString Account;
-	TSharedRef<FJsonObject> txobj;
+	TSharedRef<FJsonObject> txobj = MakeShared<FJsonObject>();;
 	TArray<TSharedPtr<FJsonValue>> txarr;
 	bool Connected = false;
 	bool QrOpen = false;

@@ -123,7 +123,7 @@ FString JsonRPC::wc_sessionPropose(FString X25519PublicKey)
 	elrondObject->SetArrayField("methods", methodsarray);
 
 	TArray<TSharedPtr<FJsonValue>> chainsarray;
-	chainsarray.Add(MakeShared<FJsonValueString>("elrond:1"));
+	chainsarray.Add(MakeShared<FJsonValueString>("elrond:d"));
 
 	elrondObject->SetArrayField("chains", chainsarray);
 
@@ -266,7 +266,7 @@ TSharedRef<FJsonObject> JsonRPC::TxObject(int Nonce, FString Value, FString Rece
 	transactionsObject->SetNumberField("gasPrice", 1000000000);
 	transactionsObject->SetNumberField("gasLimit", 500000);
 	transactionsObject->SetStringField("data", data);
-	transactionsObject->SetStringField("chainID", "1");
+	transactionsObject->SetStringField("chainID", "d");
 	transactionsObject->SetNumberField("version", 1);
 
 	return transactionsObject;
