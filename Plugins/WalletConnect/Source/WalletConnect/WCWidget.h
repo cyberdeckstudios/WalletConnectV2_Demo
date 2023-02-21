@@ -89,6 +89,8 @@ public:
 		void CLK5();
 	UFUNCTION()
 		void CLK6();
+	UFUNCTION()
+		void CLK7();
 
 	class AWCHUD* WCHUD;
 };

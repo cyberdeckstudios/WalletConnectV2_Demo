@@ -157,3 +157,32 @@ void AWCHUD::getNonce(FString tx)
 	Request->ProcessRequest();
 }
 
+void AWCHUD::message()
+{
+	WCController->signmessage();
+}
+
+void AWCHUD::disconnect()
+{
+	WCWidget->QrPanel->SetVisibility(ESlateVisibility::Collapsed);
+	WCWidget->Black->SetVisibility(ESlateVisibility::Collapsed);
+	WCWidget->DisconnectButton->SetVisibility(ESlateVisibility::Collapsed);
+	WCWidget->StatsPanel->SetVisibility(ESlateVisibility::Collapsed);
+	WCWidget->ConnectButton->SetVisibility(ESlateVisibility::Visible);
+	WCWidget->CYBER->SetText(FText::FromString(""));
+	WCWidget->EGLD->SetText(FText::FromString(""));
+	WCWidget->Username->SetText(FText::FromString(""));
+	WCWidget->Address->SetText(FText::FromString(""));
+	Url = "";
+	address = "";
+	username = "";
+	egold = "";
+	cyber = "";
+	Txtype = "";
+}
+
+void AWCHUD::disconnected()
+{
+	WCController->disconnect();
+}
+

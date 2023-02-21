@@ -167,7 +167,7 @@ void UDataProcessHelper::DecryptMessage(FString message)
 				int64 id = (FDateTime::UtcNow().GetTicks() - FDateTime(1970, 1, 1).GetTicks()) / 10;
 				FString msg = JsonRPC.Acknowledge(id);
 				Cryptography.Encrypt(msg, Symkey, msg);
-				WebRequests->SendMessage(JsonRPC.irn_publish_1108(id,Topic,msg));
+				WebRequests->SendMessage(JsonRPC.irn_publish_1108(Topic,msg));
 			}
 		}
 	}

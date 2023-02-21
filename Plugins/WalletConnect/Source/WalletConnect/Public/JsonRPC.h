@@ -40,8 +40,11 @@ public:
 	FString irn_publish_1100(FString Topic, FString EncMsg);
 	FString Acknowledge(int64 id);
 	FString irn_publish_1103(FString Topic, FString SharedKey);
-	FString irn_publish_1108(int64 id, FString Topic, FString EncMsg);
+	FString irn_publish_1113(FString Topic, FString SharedKey);
+	FString irn_publish_1108(FString Topic, FString EncMsg);
+	FString irn_publish_1112(FString Topic, FString SharedKey);
+	FString wc_sessionDelete(int64 id);
 	TSharedRef<FJsonObject> TxObject(int Nonce, FString Value, FString Receiver, FString Sender, FString data);
-	TArray<TSharedPtr<FJsonValue>> TXArray(TSharedRef<FJsonObject>transactionsObject);
 	FString wc_sessionRequest(TArray<TSharedPtr<FJsonValue>> transactionsarray);
+	FString erd_signMessage(FString Adress);
 };

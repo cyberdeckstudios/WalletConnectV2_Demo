@@ -1,5 +1,23 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
+/*
+ * Copyright (c) 2023 CYBERDECK Studios. (MIT License)
+ * https://github.com/cyberdeck-studios/WalletConnectV2_Demo
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ * - The above copyright notice and this permission notice shall be included in
+ *   all copies or substantial portions of the Software.
+ * - The Software is provided "as is", without warranty of any kind, express or
+ *   implied, including but not limited to the warranties of merchantability,
+ *   fitness for a particular purpose and noninfringement. In no event shall the
+ *   authors or copyright holders be liable for any claim, damages or other
+ *   liability, whether in an action of contract, tort or otherwise, arising from,
+ *   out of or in connection with the Software or the use or other dealings in the
+ *   Software.
+ */
 
 #include "WCController.h"
 #include "WCPlayerState.h"
@@ -9,6 +27,14 @@ void AWCController::BeginPlay()
 {
 	WCHUD = Cast<AWCHUD>(GetHUD());
 	WCPlayerState = GetPlayerState<AWCPlayerState>();
+}
+
+void AWCController::BeginDestroy()
+{
+	Super::BeginDestroy();
+	WCPlayerState->SendMessage(JsonRPC.irn_publish_1112(Topic, Symkey));
+	WCPlayerState->SendMessage(JsonRPC.irn_unsubscribe(Topic, Symkey));
+	WCPlayerState->CloseSocket();
 }
 
 void AWCController::InitilazeConnection()
@@ -76,24 +102,14 @@ void AWCController::Check(TSharedPtr<FJsonObject> JsonObject)
 		if (Connected == false)
 		{
 			Subid = JsonObject->GetStringField("result");
-			UE_LOG(LogTemp, Warning, TEXT("Subid: %s"), *Subid);
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "Subid:" + Subid);
 			Cryptography.GenerateX25519(XPublic, XPrivate);
-			UE_LOG(LogTemp, Warning, TEXT("XPublic: %s"), *XPublic);
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "XPublic:" + XPublic);
-			UE_LOG(LogTemp, Warning, TEXT("XPrivate: %s"), *XPrivate);
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "XPrivate:" + XPrivate);
 			FString msg;
-			UE_LOG(LogTemp, Warning, TEXT("Symkey1: %s"), *Symkey);
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "Symkey1:" + Symkey);
 			Cryptography.Encrypt(JsonRPC.wc_sessionPropose(XPublic), Symkey, msg);
 			WCPlayerState->SendMessage(JsonRPC.irn_publish_1100(Topic, msg));
 		}
 		else
 		{
 			Subid = JsonObject->GetStringField("result");
-			UE_LOG(LogTemp, Warning, TEXT("Subid: %s"), *Subid);
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "Subid:" + Subid);
 		}
 	}
 	else if (JsonObject->HasTypedField<EJson::String>("method"))
@@ -135,15 +151,49 @@ void AWCController::DecryptMessage(FString message)
 				Symkey = "";
 				Topic = "";
 				PeerPublic = JsonObject->GetStringField("responderPublicKey");
-				UE_LOG(LogTemp, Warning, TEXT("PeerPublic: %s"), *PeerPublic);
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "PeerPublic:" + PeerPublic);
 				Cryptography.Exchangekeys(XPrivate, PeerPublic, Symkey);
-				UE_LOG(LogTemp, Warning, TEXT("Symkey2: %s"), *Symkey);
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "Symkey2:" + Symkey);
 				Connected = true;
+				QrOpen = false;
 				Cryptography.Digest(Symkey, Topic);
 				WCPlayerState->SendMessage(JsonRPC.irn_subscribe(Topic));
 			}
+		}
+		else if (JsonObject->HasTypedField<EJson::Array>("signatures"))
+		{
+			TArray<TSharedPtr<FJsonValue>> signatures;
+			signatures = JsonObject->GetArrayField("signatures");
+			if (signatures.Num() > 0)
+			{
+				TSharedPtr<FJsonObject> signatureobject = MakeShared<FJsonObject>();
+				FString signature = "";
+				int i = signatures.Num();
+				if (txarr.Num() > 0)
+				{
+					for (uint8 x = 0; x < i; x++)
+					{
+						signatureobject = signatures[x]->AsObject();
+						signature = signatureobject->GetStringField("signature");
+						txobj = txarr[x]->AsObject().ToSharedRef();
+						txobj->SetStringField("signature", signature);
+						FString txstr;
+						const auto Writr = TJsonWriterFactory<TCHAR, TCondensedJsonPrintPolicy<TCHAR>>::Create(&txstr);
+						FJsonSerializer::Serialize(txobj, Writr);
+						FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
+						Request->SetURL("https://devnet-api.multiversx.com/transactions");
+						Request->OnProcessRequestComplete().BindUObject(this, &AWCController::OnResponseReceived);
+						Request->SetHeader("content-type", "application/json");
+						Request->SetVerb("POST");
+						Request->SetContentAsString(txstr);
+						Request->ProcessRequest();
+					}
+				}
+			}
+		}
+		else if (JsonObject->HasTypedField<EJson::String>("signature"))
+		{
+			FString signature = JsonObject->GetStringField("signature");
+			UE_LOG(LogTemp, Warning, TEXT("signature: %s"), *signature);
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "signature:" + signature);
 		}
 	}
 	else if (JsonObject->HasTypedField<EJson::Object>("params"))
@@ -158,63 +208,27 @@ void AWCController::DecryptMessage(FString message)
 				TArray<TSharedPtr<FJsonValue>> accounts;
 				accounts = JsonObject->GetArrayField("accounts");
 				Account = accounts[0]->AsString().RightChop(9);
-				int64 id = (FDateTime::UtcNow().GetTicks() - FDateTime(1970, 1, 1).GetTicks()) / 10;
-				FString msg = JsonRPC.Acknowledge(id);
-				Cryptography.Encrypt(msg, Symkey, msg);
-				WCPlayerState->SendMessage(JsonRPC.irn_publish_1108(id, Topic, msg));
+				WCPlayerState->SendMessage(JsonRPC.irn_publish_1103(Topic, Symkey));
 				WCHUD->ConnectionDone(Account);
 			}
 		}
-	}
-	else if (JsonObject->HasTypedField<EJson::Object>("result"))
-	{
-		JsonObject = JsonObject->GetObjectField("result");
-		TArray<TSharedPtr<FJsonValue>> signatures;
-		signatures = JsonObject->GetArrayField("signatures");
-		if (signatures.Num() > 1)
+		else if (JsonObject->HasTypedField<EJson::String>("message"))
 		{
-			TSharedPtr<FJsonObject> signatureobject = signatures[0]->AsObject();
-			FString signature0 = signatureobject->GetStringField("signature");
-			signatureobject = signatures[1]->AsObject();
-			FString signature1 = signatureobject->GetStringField("signature");
-			signatureobject = signatures[2]->AsObject();
-			FString signature2 = signatureobject->GetStringField("signature");
-			TArray<TSharedPtr<FJsonValue>> TXArr;
-			TSharedPtr<FJsonObject> txobject = txarr[0]->AsObject();
-			txobject->SetStringField("signature", signature0);
-			TXArr.Add(MakeShared<FJsonValueObject>(txobject));
-			txobject = txarr[1]->AsObject();
-			txobject->SetStringField("signature", signature1);
-			TXArr.Add(MakeShared<FJsonValueObject>(txobject));
-			txobject = txarr[2]->AsObject();
-			txobject->SetStringField("signature", signature2);
-			TXArr.Add(MakeShared<FJsonValueObject>(txobject));
-			FString txstr;
-			const auto Writr = TJsonWriterFactory<TCHAR, TCondensedJsonPrintPolicy<TCHAR>>::Create(&txstr);
-			FJsonSerializer::Serialize(TXArr, Writr);
-
-			FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
-			Request->SetURL("https://devnet-api.multiversx.com/transactions");
-			Request->SetHeader("content-type", "application/json");
-			Request->SetVerb("POST");
-			Request->SetContentAsString(txstr);
-			Request->ProcessRequest();
-		}
-		else
-		{
-			TSharedPtr<FJsonObject> signatureobject = signatures[0]->AsObject();
-			FString signature = signatureobject->GetStringField("signature");
-			txobj->SetStringField("signature", signature);
-			FString txstr;
-			const auto Writr = TJsonWriterFactory<TCHAR, TCondensedJsonPrintPolicy<TCHAR>>::Create(&txstr);
-			FJsonSerializer::Serialize(txobj, Writr);
-
-			FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
-			Request->SetURL("https://api.multiversx.com/transactions");
-			Request->SetHeader("content-type", "application/json");
-			Request->SetVerb("POST");
-			Request->SetContentAsString(txstr);
-			Request->ProcessRequest();
+			if (JsonObject->GetStringField("message") == "User discconnected")
+			{
+				WCPlayerState->SendMessage(JsonRPC.irn_publish_1113(Topic, Symkey));
+				WCPlayerState->SendMessage(JsonRPC.irn_unsubscribe(Topic,Symkey));
+				Connected = false;
+				WcStr = "";
+				Symkey = "";
+				Topic = "";
+				Subid = "";
+				XPrivate = "";
+				XPublic = "";
+				PeerPublic = "";
+				Account = "";
+				WCHUD->disconnect();
+			}
 		}
 	}
 }
@@ -231,9 +245,7 @@ void AWCController::transactionCyber(int nonce)
 	txarr.Add(MakeShared<FJsonValueObject>(txobj));
 	FString msg = JsonRPC.wc_sessionRequest(txarr);
 	Cryptography.Encrypt(msg, Symkey, msg);
-	int64 id = (FDateTime::UtcNow().GetTicks() - FDateTime(1970, 1, 1).GetTicks()) / 10;
-	TSharedRef<FJsonObject> jsonObject = MakeShared<FJsonObject>();
-	WCPlayerState->SendMessage(JsonRPC.irn_publish_1108(id,Topic,msg));
+	WCPlayerState->SendMessage(JsonRPC.irn_publish_1108(Topic,msg));
 }
 
 void AWCController::transaction(int nonce)
@@ -243,9 +255,7 @@ void AWCController::transaction(int nonce)
 	txarr.Add(MakeShared<FJsonValueObject>(txobj));
 	FString msg = JsonRPC.wc_sessionRequest(txarr);
 	Cryptography.Encrypt(msg, Symkey, msg);
-	int64 id = (FDateTime::UtcNow().GetTicks() - FDateTime(1970, 1, 1).GetTicks()) / 10;
-	TSharedRef<FJsonObject> jsonObject = MakeShared<FJsonObject>();
-	WCPlayerState->SendMessage(JsonRPC.irn_publish_1108(id, Topic, msg));
+	WCPlayerState->SendMessage(JsonRPC.irn_publish_1108(Topic, msg));
 }
 
 void AWCController::transactionmulti(int nonce)
@@ -257,8 +267,37 @@ void AWCController::transactionmulti(int nonce)
 	txarr.Add(MakeShared<FJsonValueObject>(JsonRPC.TxObject(nonce+2, "3000000000000000", Account, Account, "dGhpcmQ=")));
 	FString msg = JsonRPC.wc_sessionRequest(txarr);
 	Cryptography.Encrypt(msg, Symkey, msg);
-	int64 id = (FDateTime::UtcNow().GetTicks() - FDateTime(1970, 1, 1).GetTicks()) / 10;
-	TSharedRef<FJsonObject> jsonObject = MakeShared<FJsonObject>();
-	WCPlayerState->SendMessage(JsonRPC.irn_publish_1108(id, Topic, msg));
+	WCPlayerState->SendMessage(JsonRPC.irn_publish_1108(Topic, msg));
+}
+
+void AWCController::signmessage()
+{
+	txarr.Empty();
+	FString msg = JsonRPC.erd_signMessage(Account);
+	Cryptography.Encrypt(msg, Symkey, msg);
+	WCPlayerState->SendMessage(JsonRPC.irn_publish_1108(Topic, msg));
+}
+
+void AWCController::OnResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully)
+{
+	FString res = Response->GetContentAsString();
+	UE_LOG(LogTemp, Warning, TEXT("Response: %s"), *res);
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, "Response:" + res);
+}
+
+void AWCController::disconnect()
+{
+	WCPlayerState->SendMessage(JsonRPC.irn_publish_1112(Topic, Symkey));
+	WCPlayerState->SendMessage(JsonRPC.irn_unsubscribe(Topic, Symkey));
+	Connected = false;
+	WcStr ="";
+	Symkey = "";
+	Topic = "";
+	Subid = "";
+	XPrivate = "";
+	XPublic = "";
+	PeerPublic = "";
+	Account = "";
+	WCHUD->disconnect();
 }
 

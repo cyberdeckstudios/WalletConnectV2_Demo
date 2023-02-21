@@ -50,7 +50,9 @@ public:
 	void OnResponseReceived2(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 	void OnResponseReceived3(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bConnectedSuccessfully);
 	void getNonce(FString tx);
-
+	void message();
+	void disconnect();
+	void disconnected();
 protected:
 	virtual void BeginPlay() override;
 	void AddWCWidget();

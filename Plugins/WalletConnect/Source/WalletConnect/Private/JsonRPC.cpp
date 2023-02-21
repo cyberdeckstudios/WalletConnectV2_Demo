@@ -123,7 +123,7 @@ FString JsonRPC::wc_sessionPropose(FString X25519PublicKey)
 	elrondObject->SetArrayField("methods", methodsarray);
 
 	TArray<TSharedPtr<FJsonValue>> chainsarray;
-	chainsarray.Add(MakeShared<FJsonValueString>("elrond:d"));
+	chainsarray.Add(MakeShared<FJsonValueString>("elrond:D"));
 
 	elrondObject->SetArrayField("chains", chainsarray);
 
@@ -233,9 +233,38 @@ FString JsonRPC::irn_publish_1103(FString Topic, FString SharedKey)
 	return OutputString;
 
 }
-
-FString JsonRPC::irn_publish_1108(int64 id, FString Topic, FString EncMsg)
+FString JsonRPC::irn_publish_1113(FString Topic, FString SharedKey)
 {
+	int64 id = (FDateTime::UtcNow().GetTicks() - FDateTime(1970, 1, 1).GetTicks()) / 10;
+	TSharedRef<FJsonObject> JsonObject = MakeShared<FJsonObject>();
+	JsonObject->SetNumberField("id", id);
+	JsonObject->SetStringField("jsonrpc", "2.0");
+	JsonObject->SetStringField("method", "irn_publish");
+
+	TSharedRef<FJsonObject> paramsObject = MakeShared<FJsonObject>();
+	paramsObject->SetStringField("topic", Topic);
+
+	FString Message;
+
+	Cryptography.Encrypt(Acknowledge(id), SharedKey, Message);
+
+	paramsObject->SetStringField("message", Message);
+	paramsObject->SetNumberField("ttl", 300);
+	paramsObject->SetBoolField("prompt", false);
+	paramsObject->SetNumberField("tag", 1113);
+
+	JsonObject->SetObjectField("params", paramsObject);
+
+	FString OutputString;
+	const auto Writer = TJsonWriterFactory<TCHAR, TCondensedJsonPrintPolicy<TCHAR>>::Create(&OutputString);
+	FJsonSerializer::Serialize(JsonObject, Writer);
+	return OutputString;
+
+}
+
+FString JsonRPC::irn_publish_1108(FString Topic, FString EncMsg)
+{
+	int64 id = (FDateTime::UtcNow().GetTicks() - FDateTime(1970, 1, 1).GetTicks()) / 10;
 	TSharedRef<FJsonObject> jsonObject = MakeShared<FJsonObject>();
 	jsonObject->SetNumberField("id", id);
 	jsonObject->SetStringField("jsonrpc", "2.0");
@@ -256,6 +285,55 @@ FString JsonRPC::irn_publish_1108(int64 id, FString Topic, FString EncMsg)
 	return OutputString;
 }
 
+FString JsonRPC::irn_publish_1112(FString Topic, FString SharedKey)
+{
+	int64 id = (FDateTime::UtcNow().GetTicks() - FDateTime(1970, 1, 1).GetTicks()) / 10;
+	TSharedRef<FJsonObject> JsonObject = MakeShared<FJsonObject>();
+	JsonObject->SetNumberField("id", id);
+	JsonObject->SetStringField("jsonrpc", "2.0");
+	JsonObject->SetStringField("method", "irn_publish");
+
+	TSharedRef<FJsonObject> paramsObject = MakeShared<FJsonObject>();
+	paramsObject->SetStringField("topic", Topic);
+
+	FString Message;
+
+	Cryptography.Encrypt(wc_sessionDelete(id), SharedKey, Message);
+
+	paramsObject->SetStringField("message", Message);
+	paramsObject->SetNumberField("ttl", 300);
+	paramsObject->SetBoolField("prompt", false);
+	paramsObject->SetNumberField("tag", 1112);
+
+	JsonObject->SetObjectField("params", paramsObject);
+
+	FString OutputString;
+	const auto Writer = TJsonWriterFactory<TCHAR, TCondensedJsonPrintPolicy<TCHAR>>::Create(&OutputString);
+	FJsonSerializer::Serialize(JsonObject, Writer);
+	return OutputString;
+
+}
+
+FString JsonRPC::wc_sessionDelete(int64 id)
+{
+	TSharedRef<FJsonObject> jsonObject = MakeShared<FJsonObject>();
+	jsonObject->SetNumberField("id", id);
+	jsonObject->SetStringField("jsonrpc", "2.0");
+	jsonObject->SetStringField("method", "wc_sessionDelete");
+
+	TSharedRef<FJsonObject> paramsObject = MakeShared<FJsonObject>();
+
+	paramsObject->SetStringField("message", "User discconnected");
+	paramsObject->SetNumberField("code", 6000);
+
+	jsonObject->SetObjectField("params", paramsObject);
+
+	FString OutputString;
+	const auto Writer = TJsonWriterFactory<TCHAR, TCondensedJsonPrintPolicy<TCHAR>>::Create(&OutputString);
+	FJsonSerializer::Serialize(jsonObject, Writer);
+	return OutputString;
+}
+
 TSharedRef<FJsonObject> JsonRPC::TxObject(int Nonce, FString Value, FString Receiver, FString Sender,FString data)
 {
 	TSharedRef<FJsonObject> transactionsObject = MakeShared<FJsonObject>();
@@ -266,17 +344,10 @@ TSharedRef<FJsonObject> JsonRPC::TxObject(int Nonce, FString Value, FString Rece
 	transactionsObject->SetNumberField("gasPrice", 1000000000);
 	transactionsObject->SetNumberField("gasLimit", 500000);
 	transactionsObject->SetStringField("data", data);
-	transactionsObject->SetStringField("chainID", "d");
+	transactionsObject->SetStringField("chainID", "D");
 	transactionsObject->SetNumberField("version", 1);
 
 	return transactionsObject;
-}
-
-TArray<TSharedPtr<FJsonValue>> JsonRPC::TXArray(TSharedRef<FJsonObject> transactionsObject)
-{
-	TArray<TSharedPtr<FJsonValue>> transactionsarray;
-	transactionsarray.Add(MakeShared<FJsonValueObject>(transactionsObject));
-	return transactionsarray;
 }
 
 FString JsonRPC::wc_sessionRequest(TArray<TSharedPtr<FJsonValue>> transactionsarray)
@@ -299,7 +370,38 @@ FString JsonRPC::wc_sessionRequest(TArray<TSharedPtr<FJsonValue>> transactionsar
 	requestObject->SetObjectField("params", paramsObject2);
 
 	paramsObject->SetObjectField("request", requestObject);
-	paramsObject->SetStringField("chainId", "elrond:1");
+	paramsObject->SetStringField("chainId", "elrond:D");
+
+	jsonObject->SetObjectField("params", paramsObject);
+
+	FString OutputString;
+	const auto Writer = TJsonWriterFactory<TCHAR, TCondensedJsonPrintPolicy<TCHAR>>::Create(&OutputString);
+	FJsonSerializer::Serialize(jsonObject, Writer);
+	return OutputString;
+}
+
+FString JsonRPC::erd_signMessage(FString Adress)
+{
+	int64 id = (FDateTime::UtcNow().GetTicks() - FDateTime(1970, 1, 1).GetTicks()) / 10;
+	TSharedRef<FJsonObject> jsonObject = MakeShared<FJsonObject>();
+	jsonObject->SetNumberField("id", id);
+	jsonObject->SetStringField("jsonrpc", "2.0");
+	jsonObject->SetStringField("method", "wc_sessionRequest");
+
+	TSharedRef<FJsonObject> paramsObject = MakeShared<FJsonObject>();
+
+	TSharedRef<FJsonObject> requestObject = MakeShared<FJsonObject>();
+	requestObject->SetStringField("method", "erd_signMessage");
+
+	TSharedRef<FJsonObject> paramsObject2 = MakeShared<FJsonObject>();
+
+	paramsObject2->SetStringField("address", Adress);
+	paramsObject2->SetStringField("message", "Sign this message");
+
+	requestObject->SetObjectField("params", paramsObject2);
+
+	paramsObject->SetObjectField("request", requestObject);
+	paramsObject->SetStringField("chainId", "elrond:D");
 
 	jsonObject->SetObjectField("params", paramsObject);
 

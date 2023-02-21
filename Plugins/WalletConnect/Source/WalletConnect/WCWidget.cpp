@@ -49,6 +49,10 @@ void UWCWidget::NativeConstruct()
 	{
 		SignMessage->OnClicked.AddDynamic(this, &UWCWidget::CLK6);
 	}
+	if (DisconnectButton)
+	{
+		DisconnectButton->OnClicked.AddDynamic(this, &UWCWidget::CLK7);
+	}
 }
 
 void UWCWidget::CLK()
@@ -84,6 +88,12 @@ void UWCWidget::CLK5()
 void UWCWidget::CLK6()
 {
 	WCHUD = WCHUD == nullptr ? Cast<AWCHUD>(GetWorld()->GetFirstPlayerController()->GetHUD()) : WCHUD;
-	WCHUD->getNonce("message");
+	WCHUD->message();
+}
+
+void UWCWidget::CLK7()
+{
+	WCHUD = WCHUD == nullptr ? Cast<AWCHUD>(GetWorld()->GetFirstPlayerController()->GetHUD()) : WCHUD;
+	WCHUD->disconnected();
 }
 
