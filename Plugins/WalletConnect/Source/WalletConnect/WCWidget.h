@@ -64,6 +64,9 @@ public:
 		class UButton* DisconnectButton;
 
 	UPROPERTY(meta = (BindWidget))
+		class UButton* Quit;
+
+	UPROPERTY(meta = (BindWidget))
 		class UTextBlock* Address;
 
 	UPROPERTY(meta = (BindWidget))
@@ -91,6 +94,7 @@ public:
 		void CLK6();
 	UFUNCTION()
 		void CLK7();
-
+	UFUNCTION()
+		void CLK8();
 	class AWCHUD* WCHUD;
 };

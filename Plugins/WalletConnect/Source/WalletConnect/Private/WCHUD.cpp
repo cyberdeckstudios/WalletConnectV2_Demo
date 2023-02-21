@@ -28,6 +28,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Kismet/KismetTextLibrary.h"
 #include "WCController.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 void AWCHUD::BeginPlay()
 {
@@ -186,3 +187,8 @@ void AWCHUD::disconnected()
 	WCController->disconnect();
 }
 
+void AWCHUD::Quitgame()
+{
+	WCController->disconnect();
+	UKismetSystemLibrary::QuitGame(GetWorld(), WCController, EQuitPreference::Quit, false);
+}

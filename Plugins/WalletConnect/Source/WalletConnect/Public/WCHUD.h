@@ -53,6 +53,7 @@ public:
 	void message();
 	void disconnect();
 	void disconnected();
+	void Quitgame();
 protected:
 	virtual void BeginPlay() override;
 	void AddWCWidget();

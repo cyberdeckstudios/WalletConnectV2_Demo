@@ -53,6 +53,10 @@ void UWCWidget::NativeConstruct()
 	{
 		DisconnectButton->OnClicked.AddDynamic(this, &UWCWidget::CLK7);
 	}
+	if (Quit)
+	{
+		Quit->OnClicked.AddDynamic(this, &UWCWidget::CLK8);
+	}
 }
 
 void UWCWidget::CLK()
@@ -95,5 +99,11 @@ void UWCWidget::CLK7()
 {
 	WCHUD = WCHUD == nullptr ? Cast<AWCHUD>(GetWorld()->GetFirstPlayerController()->GetHUD()) : WCHUD;
 	WCHUD->disconnected();
+}
+
+void UWCWidget::CLK8()
+{
+	WCHUD = WCHUD == nullptr ? Cast<AWCHUD>(GetWorld()->GetFirstPlayerController()->GetHUD()) : WCHUD;
+	WCHUD->Quitgame();
 }
 
