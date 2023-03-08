@@ -54,8 +54,8 @@ UTexture2D* Constructor::GenerateQrCode(FString string)
 	TArray<FColor> pixels;
 	pixels.SetNumZeroed(size * size);
 
-	FColor black = FColor::Black;
-	FColor white = FColor::White;
+	FColor black = FColor::White;
+	FColor white = FColor::Black;
 
 	for (uint8 x = 0; x < size; x++)
 	{
